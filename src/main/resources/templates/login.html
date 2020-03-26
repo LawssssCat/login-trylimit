@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>登录页面</title>
+</head>
+
+<body>
+
+<form method="POST">
+    username:<input type="text" name="username" id="username"><br>
+    password:<input type="password" name="password" id="password"><br>
+    验证码:<img src="#"><input type="text" name="valcode" id="valcode"><br>
+    <input type="button" value="登   录" id="login">
+</form>
+
+<script>
+    let n = document.getElementById("login")
+    n.addEventListener("click", function (e) {
+        let username = document.getElementById("username").value
+        let password = document.getElementById("password").value
+        let valcode = document.getElementById("valcode").value
+        if (!(username && password && valcode)) {
+            alert("输入信息");
+            return
+        }
+        doLogin(username, password, valcode)
+
+        console.log(username, password, valcode);
+    })
+
+    function doLogin(username, password, valcode) {
+        //构造表单数据
+        var formData = new FormData();
+        formData.append('username', username);
+        formData.append('password', password);
+        formData.append('valcode', valcode);
+        //创建xhr对象
+        var xhr = new XMLHttpRequest();
+        //设置xhr请求的超时时间
+        xhr.timeout = 3000;
+        //设置响应返回的数据格式
+        xhr.responseType = "json";
+        //创建一个 post 请求，采用异步
+        xhr.open('POST', '/user/login', true);
+        //注册相关事件回调处理函数
+        xhr.onload = function (e) {
+            let resp = xhr.response;
+            console.log(resp);
+            let code = resp.code ;
+            let data = resp.data ;
+            let msg = resp.message ;
+            if (code == 404) {
+                //登录失败,data=剩余尝试次数
+                appendMessage(`${msg}。再错误${data}次后，账号将被锁定`);
+            } else if (code == 200) {
+                //登录成功,data=用户信息
+                appendMessage(`${msg}。${data}`);
+            } else if (code == 403) {
+                appendMessage(`${msg}。剩余时间：${data}min`);
+                //被锁定,data=剩余时间(min)
+            }
+        };
+        xhr.ontimeout = function (e) {
+        };
+        xhr.onerror = function (e) {
+        };
+        xhr.upload.onprogress = function (e) {
+        };
+        //发送数据
+        xhr.send(formData);
+    }
+
+    function appendMessage(content) {
+        let p = document.createElement("p");
+        p.innerHTML = content;
+        document.body.appendChild(p)
+    }
+</script>
+
+
+</body>
+
+</html>
